@@ -120,6 +120,26 @@ button{cursor:pointer}
 .pop .row{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font:400 14px var(--f-body);color:var(--ink)}
 .pop .row input{width:90px}
 .hint{margin:0;font-size:13px;color:var(--ink-dim);line-height:1.45}
+.pop .row input[type=range]{width:150px;accent-color:var(--amber);padding:0}
+.pop output{font:13px/1 var(--f-lcd);color:var(--amber);min-width:6ch}
+.pop .fld{display:grid;gap:8px}
+.devs{flex:1 0 100%;display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));gap:12px 16px;align-items:end;border-top:1px solid var(--line);padding-top:12px}
+.devs label,.devs .fld{display:grid;gap:6px;min-width:0;font:600 11px/1 var(--f-label);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
+.devs select{width:100%;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:9px 10px;font:400 14px/1.2 var(--f-body);letter-spacing:0;text-transform:none;color:var(--ink)}
+.key.rec{min-width:96px;background:linear-gradient(180deg,#c9402e,#962a1e);color:#fff;border-color:#e27a68;border-bottom-color:#5e150d}
+.key.rec .led{background:#ffd9d2;box-shadow:none}
+.key.rec.armed{background:#fff;color:var(--rec);border-color:#fff}
+.key.rec.armed .led{background:var(--rec);box-shadow:0 0 10px var(--rec)}
+.steps{display:flex;flex-wrap:wrap;gap:8px 24px;margin:0;padding:0;list-style:none;counter-reset:s;flex:1 1 320px}
+.steps li{counter-increment:s;display:flex;align-items:center;gap:9px}
+.steps li::before{content:counter(s);display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;background:var(--tape);color:var(--tape-ink);font:700 12px/1 var(--f-label)}
+.banner .note{flex:1 1 100%;margin:0;font-size:13px;color:var(--ink-dim)}
+.keys{margin:0}
+@media (max-width:900px){.devs{grid-template-columns:1fr 1fr}.devs>:first-child{grid-column:1/-1}}
+#notice{position:relative;padding-right:40px}#notice .close{position:absolute;top:8px;right:8px}
+@media (max-width:700px){.devs{grid-template-columns:1fr 1fr}.devs>:nth-child(-n+2){grid-column:1/-1}.lcd{flex:1;font-size:20px;padding:6px 10px;min-width:0}.lcd .state{min-width:0;font-size:11px}.out .btn{flex:1 1 auto}.grp.exp{width:100%}.grp.exp .btn{flex:1}}
+@media (pointer:coarse){.keys{display:none}.key{height:46px}.btn.sm{padding:9px 11px}}
+
 .banner{
   display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px
@@ -237,70 +257,60 @@ button{cursor:pointer}
       <button class="key" id="btnPlay" type="button" title="Play / pause (Space)" aria-label="Play">
         <svg viewBox="0 0 16 16" aria-hidden="true" id="icoPlay"><path d="M4 2.5v11L13.5 8z"/></svg>
       </button>
-      <button class="key" id="btnRec" type="button" title="Record (R)"><span class="led"></span>Rec</button>
+      <button class="key rec" id="btnRec" type="button" title="Record (R)"><span class="led"></span>Rec</button>
     </div>
-    <div class="meter">
-      <button class="micbtn" id="btnMic" type="button">Enable mic</button>
-      <div class="leds" id="leds" aria-hidden="true"></div>
-      <span class="clip" id="clip">CLIP</span>
-    </div>
-    <label class="toggle" title="Plays your mic in your headphones. Has a little delay in browsers."><input type="checkbox" id="monitor"> Hear myself</label>
     <details class="setup" id="setup">
       <summary>Setup</summary>
       <div class="pop">
-        <label>Microphone
-          <select id="micSel"><option value="">Default mic</option></select>
-        </label>
-        <label>Pre-roll before recording
+        <label class="chk"><input type="checkbox" id="monitor"> Hear myself in my headphones. Has a small delay, wear headphones or it will feed back.</label>
+        <label>Count-in before recording
           <select id="preSel">
             <option value="0">Off, start instantly</option>
             <option value="2" selected>2 sec with clicks</option>
             <option value="4">4 sec with clicks</option>
           </select>
         </label>
-        <label class="chk"><input type="checkbox" id="micFx"> Mic cleanup (noise suppression, echo cancel, auto volume). Leave off with headphones, it squashes singing.</label>
+        <div class="fld"><span class="lbl">Noise gate threshold</span>
+          <span class="row"><input type="range" id="gateIn" min="-70" max="-20" step="1" value="-45" aria-label="Gate threshold"> <output id="gateOut">-45 dB</output></span>
+          <button class="btn sm" id="btnLearn" type="button" title="Stay quiet for 2 seconds so the gate can learn your room">Learn room noise</button>
+        </div>
         <label>Latency fix
           <span class="row"><input type="number" id="latIn" min="0" max="500" step="1" placeholder="auto"> ms <button class="btn sm" id="latAuto" type="button">Auto</button></span>
         </label>
-        <p class="hint">Takes landing late? Raise this. Wired headphones usually need 10 to 40 ms, Bluetooth often 150 to 250. You can also fine-tune each take after recording.</p>
+        <p class="hint">Takes landing late? Raise the latency fix. Wired headphones usually need 10 to 40 ms, Bluetooth often 150 to 250. You can also nudge each take after recording.</p>
       </div>
     </details>
+    <div class="devs">
+      <div class="fld"><span>Input level</span>
+        <div class="meter">
+          <button class="micbtn" id="btnMic" type="button">Enable mic</button>
+          <div class="leds" id="leds" aria-hidden="true"></div>
+          <span class="clip" id="clip">CLIP</span>
+        </div>
+      </div>
+      <label>Microphone <select id="micSel"><option value="">Default mic</option></select></label>
+      <label>Output <select id="outSel"><option value="">Default output</option></select></label>
+      <label>Noise suppression <select id="noiseSel" title="Strong = your browser's noise filter plus a gate. Gate only = just the gate. Off = raw mic."><option value="off">Off</option><option value="gate">Gate only</option><option value="both" selected>Strong</option></select></label>
+    </div>
   </header>
   <div class="banner" id="notice">
-    <span class="tag">Demo beat</span>
-    <p>A placeholder beat is loaded so you can test your mic. Hit <b>Load beat</b> or drop your instrumental anywhere on the tracks.</p>
+    <ol class="steps">
+      <li><span><b>Load beat</b> or drag your instrumental in</span></li>
+      <li><span>Put headphones on, hit <b>Rec</b> and sing</span></li>
+      <li><span><b>Export mix</b> when it sounds right</span></li>
+    </ol>
     <button class="close" type="button" id="noticeClose" aria-label="Dismiss">✕</button>
+    <p class="note">A demo beat is loaded so you can test your mic first.</p>
   </div>
   <div class="banner warn" id="micHelp" hidden>
     <span class="tag">Mic</span>
     <p id="micHelpText"></p>
     <button class="close" type="button" id="micHelpClose" aria-label="Dismiss">✕</button>
   </div>
-  <section class="rack" id="rack" aria-label="Tracks">
-    <div class="heads" id="heads"></div>
-    <div class="scroller" id="scroller">
-      <div class="inner" id="inner"><canvas id="cv" aria-label="Timeline. Click to move the playhead, drag a clip to move it."></canvas></div>
-    </div>
-    <div class="count" id="count" hidden><div><small>RECORDING IN</small><span id="countNum">2</span></div></div>
-  </section>
-  <div class="inspector" id="insp" hidden>
-    <span class="iname" id="iName">Vox 1</span>
-    <span class="lbl">Timing</span>
-    <button class="btn sm" type="button" data-n="-10">−10</button>
-    <button class="btn sm" type="button" data-n="-1">−1</button>
-    <output id="iOff">+0 ms</output>
-    <button class="btn sm" type="button" data-n="1">+1</button>
-    <button class="btn sm" type="button" data-n="10">+10</button>
-    <button class="btn sm" type="button" id="iReset">Reset</button>
-    <span class="sep"></span>
-    <span class="at" id="iAt">starts 0:00.00</span>
-    <button class="btn sm" type="button" id="iToHead">Move to playhead</button>
-    <button class="btn sm" type="button" id="iSave">Download raw take</button>
-  </div>
   <footer class="out">
     <div class="grp">
       <button class="btn" type="button" id="btnLoadBeat">Load beat</button>
-      <button class="btn" type="button" id="btnImport">Import audio track</button>
+      <button class="btn" type="button" id="btnImport">Add track</button>
     </div>
     <div class="grp zoom">
       <span class="lbl">Zoom</span>
@@ -312,10 +322,25 @@ button{cursor:pointer}
       <button class="btn" type="button" id="btnExpVox">Vocals only · WAV</button>
     </div>
   </footer>
-  <p class="keys">
-    <kbd>Space</kbd> play / pause &nbsp; <kbd>R</kbd> record / stop &nbsp; <kbd>Home</kbd> back to start &nbsp; <kbd>←</kbd><kbd>→</kbd> jump 1 s.
-    Wear headphones so the beat doesn't bleed into your vocal. After a take, the playhead jumps back to where you punched in so you can go again.
-  </p>
+  <section class="rack" id="rack" aria-label="Tracks">
+    <div class="heads" id="heads"></div>
+    <div class="scroller" id="scroller">
+      <div class="inner" id="inner"><canvas id="cv" aria-label="Timeline. Click to move the playhead, drag a clip to move it."></canvas></div>
+    </div>
+    <div class="count" id="count" hidden><div><small>RECORDING IN</small><span id="countNum">2</span></div></div>
+  </section>
+  <div class="inspector" id="insp" hidden>
+    <span class="iname" id="iName">Vox 1</span>
+    <span class="lbl" title="Slide the take earlier or later if it sounds out of sync">Nudge timing</span>
+    <button class="btn sm" type="button" data-n="-10">−10</button>
+    <button class="btn sm" type="button" data-n="-1">−1</button>
+    <output id="iOff">+0 ms</output>
+    <button class="btn sm" type="button" data-n="1">+1</button>
+    <button class="btn sm" type="button" data-n="10">+10</button>
+    <button class="btn sm" type="button" id="iReset">Reset</button>
+    <button class="btn sm" type="button" id="iSave">Download raw take</button>
+  </div>
+  <p class="keys"><kbd>Space</kbd> play / pause &nbsp; <kbd>R</kbd> record / stop &nbsp; <kbd>Home</kbd> back to start</p>
 </div>
 <input type="file" id="fileBeat" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.webm,.opus" hidden>
 <input type="file" id="fileTrack" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.webm,.opus" multiple hidden>
@@ -327,6 +352,7 @@ const $ = s => document.querySelector(s);
 const LANE_H = 96, RULER_H = 28;
 const TRACK_COLORS = ['#ff9473','#7fc8ff','#94e2b9','#cdaaff','#ffd56b','#ff9fcd'];
 const BEAT_COLOR = '#d9c398';
+const SINK_OK = !!(window.AudioContext && 'setSinkId' in AudioContext.prototype);
 const FX = [['raw','Raw'],['clean','Clean'],['space','Verb'],['echo','Echo'],['phone','Phone']];
 const FONT_REGION = '600 11px "Barlow Condensed","Arial Narrow",sans-serif';
 const FONT_RULER = '11px "Share Tech Mono",ui-monospace,monospace';
@@ -342,7 +368,7 @@ const S = {
   ctx: null, master: null, tracks: [], uid: 0, colorIx: 0, voxN: 0,
   playing: false, recording: false, pos: 0, t0: 0, startPos: 0, playOrigin: 0, sources: [],
   pps: 20, fitMode: true, selected: null, dirty: true, dpr: 1, cw: 0, ch: 0, viewW: 0,
-  preroll: 2, latencyMs: null, latencyManual: false, micFx: false, monitor: false, deviceId: '',
+  preroll: 2, latencyMs: null, latencyManual: false, noise: 'both', gateDb: -45, monitor: false, deviceId: '', outId: '', hp: null, gate: null,
   stream: null, micSrc: null, analyser: null, monitorGain: null, recNode: null, recCmd: null, workletOK: null,
   rec: null, unsaved: false, beatName: 'demo-beat', meterOn: false, drag: null, flushResolve: null
 };
@@ -746,7 +772,8 @@ function updateUI(){
   const br = $('#btnRec');
   br.classList.toggle('armed', S.recording);
   br.lastChild.textContent = S.recording ? 'Stop' : 'Rec';
-  for (const id of ['#btnLoadBeat', '#btnImport', '#btnExpMix', '#btnExpVox', '#micSel', '#micFx', '#preSel', '#btnHome']) $(id).disabled = S.recording;
+  for (const id of ['#btnLoadBeat', '#btnImport', '#btnExpMix', '#btnExpVox', '#micSel', '#outSel', '#noiseSel', '#btnLearn', '#preSel', '#btnHome']) $(id).disabled = S.recording;
+  if (!SINK_OK) $('#outSel').disabled = true;
   if (!S.recording) $('#count').hidden = true;
 }
 const WORKLET_SRC = `
@@ -774,7 +801,46 @@ class PBRec extends AudioWorkletProcessor {
     return true;
   }
 }
-registerProcessor('pb-rec', PBRec);`;
+registerProcessor('pb-rec', PBRec);
+class PBGate extends AudioWorkletProcessor {
+  constructor(){
+    super(); this.on = true; this.thr = 0.0056; this.env = 0; this.g = 1; this.hold = 0; this.floor = 0.04;
+    this.learn = 0; this.lpk = 0; this.lsum = 0; this.lcnt = 0;
+    this.port.onmessage = e => {
+      const m = e.data;
+      if (m.on !== undefined) this.on = m.on;
+      if (m.thr !== undefined) this.thr = m.thr;
+      if (m.learn){ this.learn = m.learn; this.lpk = 0; this.lsum = 0; this.lcnt = 0; }
+    };
+  }
+  process(inputs, outputs){
+    const i = inputs[0], o = outputs[0];
+    if (!i || !i.length || !o || !o.length) return true;
+    const a = i[0], out = o[0], sr = sampleRate;
+    const att = 1 - Math.exp(-1 / (sr * 0.004)), rel = 1 - Math.exp(-1 / (sr * 0.12));
+    const gUp = 1 - Math.exp(-1 / (sr * 0.006)), gDn = 1 - Math.exp(-1 / (sr * 0.05));
+    for (let k = 0; k < a.length; k++){
+      const x = a[k], ax = x < 0 ? -x : x;
+      this.env += (ax > this.env ? att : rel) * (ax - this.env);
+      if (this.learn > 0){ this.lsum += ax * ax; this.lcnt++; if (ax > this.lpk) this.lpk = ax; }
+      let target = 1;
+      if (this.on){
+        if (this.env > this.thr) this.hold = sr * 0.15;
+        else if (this.hold > 0) this.hold--;
+        target = this.hold > 0 ? 1 : this.floor;
+      }
+      this.g += (target - this.g) * (target > this.g ? gUp : gDn);
+      out[k] = x * this.g;
+    }
+    for (let c = 1; c < o.length; c++) o[c].set(out);
+    if (this.learn > 0){
+      this.learn -= a.length;
+      if (this.learn <= 0){ this.learn = 0; this.port.postMessage({ learned: Math.sqrt(this.lsum / Math.max(1, this.lcnt)), peak: this.lpk }); }
+    }
+    return true;
+  }
+}
+registerProcessor('pb-gate', PBGate);`;
 async function ensureRecorder(){
   if (S.recNode) return;
   const c = S.ctx;
@@ -787,6 +853,10 @@ async function ensureRecorder(){
       const n = new AudioWorkletNode(c, 'pb-rec', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit', channelInterpretation: 'speakers' });
       n.port.onmessage = e => { const m = e.data; if (m.done){ if (S.flushResolve) S.flushResolve(); } else onChunk(m.frame, m.data); };
       S.recNode = n; S.recCmd = m => n.port.postMessage(m); S.workletOK = true;
+      try {
+        const gt = new AudioWorkletNode(c, 'pb-gate', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit', channelInterpretation: 'speakers' });
+        gt.port.onmessage = e => onGateMsg(e.data); S.gate = gt;
+      } catch (e) { S.gate = null; }
     } catch (err) { S.workletOK = false; }
   }
   if (!S.recNode){
@@ -803,14 +873,42 @@ async function ensureRecorder(){
   S.recNode.connect(sink); sink.connect(c.destination);
 }
 function micHelp(msg){ $('#micHelpText').textContent = msg; $('#micHelp').hidden = !msg; }
+function applyNoise(){
+  const off = S.noise === 'off';
+  if (S.hp && S.ctx) S.hp.frequency.setTargetAtTime(off ? 10 : 85, S.ctx.currentTime, 0.01);
+  if (S.gate) S.gate.port.postMessage({ on: !off, thr: Math.pow(10, S.gateDb / 20) });
+}
+function onGateMsg(m){
+  if (m.learned === undefined) return;
+  const db = m.learned > 0 ? 20 * Math.log10(m.learned * 2.5) : -70;
+  S.gateDb = Math.round(clamp(db, -70, -20));
+  $('#gateIn').value = S.gateDb; $('#gateOut').textContent = S.gateDb + ' dB';
+  if (S.noise === 'off'){ S.noise = 'gate'; $('#noiseSel').value = 'gate'; }
+  applyNoise();
+  const b = $('#btnLearn'); b.disabled = false; b.textContent = 'Learn room noise';
+  toast('Room noise measured. Gate set to ' + S.gateDb + ' dB.');
+}
+async function learnNoise(){
+  if (S.recording) return;
+  if (!S.stream){ const ok = await enableMic(); if (!ok) return; }
+  if (!S.gate){ toast('The noise gate needs AudioWorklet support (current Chrome, Edge, Firefox or Safari).', true); return; }
+  const b = $('#btnLearn'); b.disabled = true; b.textContent = 'Stay quiet…';
+  S.gate.port.postMessage({ learn: Math.round(S.ctx.sampleRate * 2) });
+  setTimeout(() => { if (b.disabled){ b.disabled = false; b.textContent = 'Learn room noise'; } }, 4000);
+}
+async function setOutput(id){
+  S.outId = id;
+  if (!SINK_OK){ toast('This browser can\'t pick an output. Use your system sound settings.', true); return; }
+  try { await ensureCtx().setSinkId(id); toast('Output switched.'); }
+  catch (e) { toast('Couldn\'t switch output: ' + (e && e.message ? e.message : e.name), true); }
+}
 async function enableMic(){
   await wake();
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
     micHelp('This view has no microphone access. Open this page directly in Chrome, Edge or Firefox over https.');
     return false;
   }
-  const fx = S.micFx;
-  const cons = { audio: { echoCancellation: fx, noiseSuppression: fx, autoGainControl: fx, channelCount: 1 } };
+  const cons = { audio: { echoCancellation: false, noiseSuppression: S.noise === 'both', autoGainControl: false, channelCount: 1 } };
   if (S.deviceId) cons.audio.deviceId = { exact: S.deviceId };
   try {
     const stream = await navigator.mediaDevices.getUserMedia(cons);
@@ -822,7 +920,14 @@ async function enableMic(){
     if (!S.analyser){ S.analyser = c.createAnalyser(); S.analyser.fftSize = 1024; }
     if (!S.monitorGain){ S.monitorGain = c.createGain(); S.monitorGain.gain.value = S.monitor ? 1 : 0; S.monitorGain.connect(c.destination); }
     await ensureRecorder();
-    S.micSrc.connect(S.analyser); S.micSrc.connect(S.monitorGain); S.micSrc.connect(S.recNode);
+    if (!S.hp){
+      S.hp = c.createBiquadFilter(); S.hp.type = 'highpass'; S.hp.Q.value = 0.7;
+      const tail = S.gate || S.hp;
+      if (S.gate) S.hp.connect(S.gate);
+      tail.connect(S.analyser); tail.connect(S.monitorGain); tail.connect(S.recNode);
+    }
+    S.micSrc.connect(S.hp);
+    applyNoise();
     micHelp('');
     const tr = stream.getAudioTracks()[0];
     const b = $('#btnMic'); b.textContent = 'Mic on'; b.classList.add('live'); b.title = tr ? tr.label : '';
@@ -845,13 +950,18 @@ async function enableMic(){
     return false;
   }
 }
+function fillSel(sel, devs, fallback, label, cur){
+  sel.innerHTML = '';
+  const real = devs.filter(d => d.deviceId);
+  if (!real.length){ const o = document.createElement('option'); o.value = ''; o.textContent = fallback; sel.appendChild(o); return; }
+  real.forEach((d, i) => { const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || (label + ' ' + (i + 1)); sel.appendChild(o); });
+  sel.value = cur; if (sel.selectedIndex < 0) sel.selectedIndex = 0;
+}
 async function listDevices(currentId){
   try {
-    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput');
-    const sel = $('#micSel'); sel.innerHTML = '';
-    devs.forEach((d, i) => { const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || ('Microphone ' + (i + 1)); sel.appendChild(o); });
-    if (!devs.length){ const o = document.createElement('option'); o.value = ''; o.textContent = 'Default mic'; sel.appendChild(o); }
-    sel.value = S.deviceId || currentId || (devs[0] && devs[0].deviceId) || '';
+    const all = await navigator.mediaDevices.enumerateDevices();
+    fillSel($('#micSel'), all.filter(d => d.kind === 'audioinput'), 'Default mic', 'Microphone', S.deviceId || currentId || '');
+    if (SINK_OK) fillSel($('#outSel'), all.filter(d => d.kind === 'audiooutput'), 'Default output', 'Speakers', S.outId || 'default');
   } catch (e) {}
 }
 function estLatency(){
@@ -1047,7 +1157,6 @@ function updateInspector(){
   box.hidden = false; box.style.setProperty('--c', t.color);
   $('#iName').textContent = t.name;
   $('#iOff').textContent = (t.nudge > 0 ? '+' : t.nudge < 0 ? '−' : '+') + Math.abs(t.nudge) + ' ms';
-  $('#iAt').textContent = 'starts ' + fmtShort(Math.max(0, regionStart(t)));
   $('#iSave').hidden = !t.buffer;
 }
 function nudgeSelected(ms){
@@ -1061,7 +1170,6 @@ function afterMove(){
 }
 document.querySelectorAll('#insp [data-n]').forEach(b => b.addEventListener('click', () => nudgeSelected(+b.dataset.n)));
 $('#iReset').addEventListener('click', () => { if (S.selected){ S.selected.nudge = 0; afterMove(); } });
-$('#iToHead').addEventListener('click', () => { const t = S.selected; if (!t) return; t.start = Math.max(0, S.pos - t.nudge / 1000); afterMove(); });
 $('#iSave').addEventListener('click', () => { const t = S.selected; if (t && t.buffer){ download(wavBlob(t.buffer), safeName(t.name) + '.wav'); toast('Downloading ' + safeName(t.name) + '.wav'); } });
 function hit(e){
   const r = cv.getBoundingClientRect();
@@ -1117,7 +1225,11 @@ $('#monitor').addEventListener('change', e => {
   if (S.monitor){ toast('Headphones only, or you\'ll get feedback.'); if (!S.stream) enableMic(); }
 });
 $('#micSel').addEventListener('change', e => { S.deviceId = e.target.value; if (S.stream) enableMic(); });
-$('#micFx').addEventListener('change', e => { S.micFx = e.target.checked; if (S.stream) enableMic(); });
+$('#noiseSel').addEventListener('change', e => { S.noise = e.target.value; if (S.stream) enableMic(); else applyNoise(); });
+$('#outSel').addEventListener('change', e => setOutput(e.target.value));
+$('#gateIn').addEventListener('input', e => { S.gateDb = +e.target.value; $('#gateOut').textContent = S.gateDb + ' dB'; applyNoise(); });
+$('#btnLearn').addEventListener('click', learnNoise);
+if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', () => { const tr = S.stream && S.stream.getAudioTracks()[0]; listDevices(tr && tr.getSettings ? tr.getSettings().deviceId : ''); });
 $('#preSel').addEventListener('change', e => { S.preroll = +e.target.value; });
 $('#latIn').addEventListener('change', e => {
   const v = parseInt(e.target.value, 10);
@@ -1237,6 +1349,8 @@ async function makeDemoBeat(){
 }
 renderHeads(); updateUI(); layout(true);
 ensureCtx();
+if (!SINK_OK){ $('#outSel').innerHTML = '<option value="">System default</option>'; $('#outSel').title = 'This browser can\'t pick an output. Use your system sound settings (Chrome and Edge can).'; }
+listDevices('');
 makeDemoBeat().then(buf => {
   if (S.tracks.some(t => t.kind === 'beat')) return;
   addTrack({ kind: 'beat', name: 'Demo beat', buffer: buf, demo: true, volume: 0.85 });
